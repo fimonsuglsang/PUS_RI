@@ -1,12 +1,13 @@
 
 library(tidyverse)
+library(osfr)
 set.seed(1337)
 
 # Barometer data ----------------------------------------------------------
 
-library(tidyverse)
-
-haven::read_dta("data/barom.dta") -> rawbarom
+# extract of only relevant variables.
+# full data on https://search.gesis.org/research_data/ZA7782?doi=10.4232/1.13884
+load("data/barom.rdata")
 
 rawbarom %>% 
   transmute(
@@ -88,8 +89,13 @@ barom <- bind_cols(background, lit, atts, engage) %>%
 
 # expert evaluation (sops) ------------------------------------------------
 
-sops <- haven::read_stata("./data/SOPs4RI_UESSEX_WP6_data_V3_4_20211214.dta") %>% 
-  select(reswkenv:respubcom, impwkenv:imppubcom, qrpcite:qrpethapp, country) %>% 
+
+# extract of only relevant variables.
+# full data on https://osf.io/xb9rk/files/osfstorage
+load("data/sopsdata.rdata")
+
+
+sops <- sops %>%  
   mutate(across(c(reswkenv:respubcom, impwkenv:imppubcom), ~6-.)) %>% 
   mutate(RI = rowMeans(select(., reswkenv:respubcom), na.rm = T)) %>% 
   
@@ -97,12 +103,9 @@ sops <- haven::read_stata("./data/SOPs4RI_UESSEX_WP6_data_V3_4_20211214.dta") %>
   mutate(QRP = rowMeans(select(., qrpcite:qrpethapp), na.rm = T)) %>% 
   
   mutate(country = as_factor(country)) %>% 
-  mutate(country = str_replace(country, "UK", "United Kingdom"))
+  mutate(country = str_replace(country, "UK", "United Kingdom")) %>%  
 
-
-sops <- sops %>% summarise(RI_mean = mean(RI, na.rm = T), QRP_mean = mean(QRP, na.rm = T),
-                           RI_median = median(RI, na.rm = T), QRP_median = median(QRP, na.rm = T),
-                           .by = country)
+  summarise(RI_mean = mean(RI, na.rm = T), QRP_mean = mean(QRP, na.rm = T), .by = country)
 
 
 # country level data ---------------------------------------------------------------

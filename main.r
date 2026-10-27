@@ -5,10 +5,6 @@ library(tidyverse)
 load("merged.rdata")
 load("regs.rdata")
 load("preds.rdata")
-load("regs_lit.rdata")
-load("preds_lit.rdata")
-load("regs_pol.rdata")
-load("preds_pol.rdata")
 
 # inspection --------------------------------------------------------------
 
@@ -106,8 +102,8 @@ preds %>%
     outc = str_replace(outc, "prom", "Attitude (Promise)"),
     outc = str_replace(outc, "res", "Attitude (Reservation)")
   ) %>% 
-  filter(measure == "mean", type == "both") %>% 
-  mutate(pred0 = approx(x, predicted, xout = 0)$y, .by = c(pred, model, outc, measure, type)) %>% 
+  filter(type == "both") %>% 
+  mutate(pred0 = approx(x, predicted, xout = 0)$y, .by = c(pred, model, outc, type)) %>% 
   mutate(across(c(predicted, conf.low, conf.high), \(x) x-pred0)) %>% 
   
   ggplot() +
@@ -128,76 +124,15 @@ ggsave("plots/fig3.png")
 
 modelsummary::modelsummary(
   list(
-    "prom" = regs$prom_mean,
-    "prom" = regs$prom_mean_ri,
-    "prom" = regs$prom_mean_qrp,
-    "res" = regs$res_mean,
-    "res" = regs$res_mean_ri,
-    "res" = regs$res_mean_qrp
+    "prom" = regs$prom,
+    "prom" = regs$prom_ri,
+    "prom" = regs$prom_qrp,
+    "res" = regs$res,
+    "res" = regs$res_ri,
+    "res" = regs$res_qrp
   ),
   stars = T,
   output = "flextable"
 ) %>% 
   flextable::save_as_docx(path = "tables/a4.docx")
-
-
-# regressions (lit interaction) -------------------------------------------
-
-bind_rows(
-  preds_lit %>% mutate(inter = "Knowledge\n(higher = dashed)"),
-  preds_pol %>% mutate(inter = "Ideology\n(right = dashed)")
-) %>% 
-  mutate(
-    pred = str_replace(pred, "QRP", "Questionable Research Practices"),
-    pred = str_replace(pred, "RI", "Research Integrity")
-  ) %>% 
-  filter(measure == "mean", type == "both", outc == "res") %>% 
-  mutate(pred0 = approx(x, predicted, xout = 0)$y, .by = c(pred, model, inter, outc, measure, type)) %>% 
-  mutate(across(c(predicted, conf.low, conf.high), \(x) x-pred0)) %>% 
-
-  ggplot() +
-  aes(x = x, y = predicted, ymin = conf.low, ymax = conf.high) +
-  geom_hline(yintercept = 0, linetype = "dashed", color = "grey70") +
-  geom_vline(xintercept = 0, linetype = "dashed", color = "grey70") +
-  geom_ribbon(aes(group = paste0(model, inter, group, outc)), alpha = 0.15, fill = "grey60") +
-  geom_line(aes(linetype = group), color = "#d6604d", linewidth = 1) +
-  ylab("") +
-  xlab("") +
-  scale_linetype_manual(values = c("dotted", "solid", "dashed")) +
-  coord_cartesian(ylim = c(-.5,.5), xlim = c(-2,2)) +
-  facet_grid(inter~pred) +
-  jtools::theme_nice(legend.pos = "none") +
-  theme(legend.title = element_blank())
-
-ggsave("plots/fig4.png")
-
-modelsummary::modelsummary(
-  list(
-    "prom" = regs_lit$prom_mean,
-    "prom" = regs_lit$prom_mean_ri,
-    "prom" = regs_lit$prom_mean_qrp,
-    "res" = regs_lit$res_mean,
-    "res" = regs_lit$res_mean_ri,
-    "res" = regs_lit$res_mean_qrp
-  ),
-  stars = T,
-  output = "flextable"
-) %>% 
-  flextable::save_as_docx(path = "tables/a5.docx")
-
-modelsummary::modelsummary(
-  list(
-    "prom" = regs_pol$prom_mean,
-    "prom" = regs_pol$prom_mean_ri,
-    "prom" = regs_pol$prom_mean_qrp,
-    "res" = regs_pol$res_mean,
-    "res" = regs_pol$res_mean_ri,
-    "res" = regs_pol$res_mean_qrp
-  ),
-  stars = T,
-  output = "flextable"
-) %>% 
-  flextable::save_as_docx(path = "tables/a6.docx")
-
-
 
