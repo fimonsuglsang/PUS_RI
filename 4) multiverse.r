@@ -67,6 +67,12 @@ bind_rows(
       formula == "res ~ QRP_mean + RI_mean + gdppc + rnd + espend + dem + age + gender + edu + scilit + pol + rel + (1 | country)" ~ T,
       formula == "res ~ RI_mean + QRP_mean + gdppc + rnd + espend + dem + age + gender + edu + scilit + pol + rel + (1 | country)" ~ T
     )) %>% 
+  mutate(
+    x = str_replace(x, "QRP_mean", "Questionable Research Practices"),
+    x = str_replace(x, "RI_mean", "Research Integrity"),
+    y = str_replace(y, "prom", "Attitude (Promise)"),
+    y = str_replace(y, "res", "Attitude (Reservation)")
+  ) %>% 
   
   mutate(rank = rank(estimate, ties.method = "first"), .by = c(x, y)) %>%
   ggplot() +
@@ -79,8 +85,10 @@ bind_rows(
   geom_hline(yintercept = 0, linetype = "dashed") +
   scale_color_manual(values = c("gray70", "black")) +
   facet_grid(y ~ x, scales = "free", space = "free_x") +
-  jtools::theme_nice(legend.pos = "none")
+  labs(x = "", y = "Estimate") +
+  jtools::theme_nice(legend.pos = "none") +
+  theme(axis.text.x = element_blank())
 
-ggsave("multi.png")
+ggsave("plots/a_multi.png")
 
 

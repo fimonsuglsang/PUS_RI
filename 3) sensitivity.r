@@ -26,6 +26,7 @@ expand_grid(
 save(sens, file = "sens.rdata")
 
 
+load("sens.rdata")
 
 sens %>%
   filter(term %in% c("RI_mean", "QRP_mean")) %>%
@@ -41,4 +42,6 @@ sens %>%
   jtools::theme_nice(legend.pos = "none") +
   theme(axis.text.y = element_text(hjust = 1))
 
-ggsave("sensitivity.png")
+ggsave("plots/a_sensitivity.png")
+
+

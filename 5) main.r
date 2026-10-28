@@ -43,25 +43,6 @@ rnaturalearth::ne_countries(scale = "medium", returnclass = "sf") %>%
 
 ggsave("plots/fig1.png")
 
-merged %>% 
-  select(country, RI_mean, QRP_mean) %>% 
-  summarise(
-    "Research Integrity (Research Environment)" = mean(RI_mean, na.rm = T),
-    "Questionable Research Practices (Researcher)" = mean(QRP_mean, na.rm = T),
-    .by = country
-  ) %>% 
-  ggplot() +
-  aes(y = `Questionable Research Practices (Researcher)`, x = `Research Integrity (Research Environment)`) +
-  geom_point() +
-  geom_smooth(method = "lm", color = "black") +
-  ggrepel::geom_text_repel(
-    aes(label = country), 
-    seed = "123", 
-    force = 10,
-    min.segment.length = 0,
-    size = 3
-  ) +
-  jtools::theme_nice()
 
 merged %>% 
   select(country, res, prom, RI_mean, QRP_mean) %>% 
@@ -93,7 +74,8 @@ merged %>%
 
 ggsave("plots/fig2.png")
 
-# regressions (base) -------------------------------------------------------
+
+# regressions -------------------------------------------------------
 
 preds %>% 
   mutate(
@@ -121,6 +103,8 @@ preds %>%
   theme(legend.title = element_blank())
 
 ggsave("plots/fig3.png")
+
+# as table, in appendix
 
 modelsummary::modelsummary(
   list(
