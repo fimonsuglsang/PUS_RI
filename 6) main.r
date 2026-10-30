@@ -72,7 +72,7 @@ merged %>%
   facet_grid(att~ri) +
   jtools::theme_nice()
 
-ggsave("plots/fig2.png")
+ggsave("plots/fig3.png")
 
 
 # regressions -------------------------------------------------------
@@ -102,7 +102,7 @@ preds %>%
   jtools::theme_nice(legend.pos = "none") +
   theme(legend.title = element_blank())
 
-ggsave("plots/fig3.png")
+ggsave("plots/fig4.png")
 
 # as table, in appendix
 

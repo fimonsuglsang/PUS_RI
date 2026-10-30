@@ -1,29 +1,30 @@
 
 library(tidyverse)
-library(osfr)
 set.seed(1337)
 
 # Barometer data ----------------------------------------------------------
 
-# extract of only relevant variables.
+# extract of only relevant variables and used countries
 # full data on https://search.gesis.org/research_data/ZA7782?doi=10.4232/1.13884
 load("data/barom.rdata")
 
+
+
 rawbarom %>% 
   transmute(
-    country = as_factor(tnscntry) %>% str_remove( " \\(..\\)$"),
+    country = haven::as_factor(tnscntry) %>% str_remove( " \\(..\\)$"),
     country = case_when(country == "EG" | country == "WG" ~ "Germany", .default = country),
-    gender = as_factor(d10), 
+    gender = haven::as_factor(d10), 
     
     edu = case_when(
       d8>= 3 & d8<= 15 ~ "-15",
       d8>= 16 & d8<= 19 ~ "16-19",
-      d8>= 20 & d8<= 24 ~ "24-29",
+      d8>= 20 & d8<= 24 ~ "20-24",
       d8>= 25 & d8<= 29 ~ "25-29",
       d8>= 30 & d8<= 90 ~ "30-",
       d8== 98 ~ "still studying",
     ),
-    edu = fct_relevel(edu, "-15","16-19","24-29","25-29","30-","still studying"),
+    edu = fct_relevel(edu, "-15","16-19","20-24","25-29","30-","still studying"),
     age = d11,
     
     pol = case_when(d1 < 11 ~ d1),
@@ -68,7 +69,7 @@ psych::factor.scores(atts,psych::fa(atts, 2))$scores %>%
   as_tibble() %>% 
   rename(res = MR1, prom = MR2) -> atts
 
-#getting engagment data
+#getting engagement data
 rawbarom %>% 
   sjlabelled::label_to_colnames() %>% 
   select(matches("S&T ENGAGEMENT: ")) %>% 
@@ -153,7 +154,8 @@ merged <- left_join(
   left_join(sops, country) %>% 
     semi_join(clist) %>% 
     mutate(across(c(RI_mean:dem), \(x) (x-mean(x, na.rm = T))/sd(x, na.rm = T)))
-)
+) %>% 
+  haven::zap_labels()
 
 save(merged, file = "merged.rdata")
 
